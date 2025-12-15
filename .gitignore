@@ -29,3 +29,5 @@ git-src
 .cproject
 .ccache
 .vscode*
+OpenWrt_*.zip
+OpenWrt_firmware
