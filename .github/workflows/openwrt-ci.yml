@@ -61,15 +61,23 @@ jobs:
         run: |
           sed -i '1i src-git kenzo https://github.com/kenzok8/openwrt-packages' feeds.conf.default
           sed -i '2i src-git small https://github.com/kenzok8/small' feeds.conf.default
+          echo "===== feeds.conf.default (after injection) ====="
+          cat feeds.conf.default
           ./scripts/feeds update -a && rm -rf feeds/luci/applications/luci-app-mosdns
           rm -rf feeds/packages/net/{alist,adguardhome,mosdns,xray*,v2ray*,v2ray*,sing*,smartdns}
           rm -rf feeds/packages/utils/v2dat
           rm -rf feeds/packages/lang/golang
-          git clone https://github.com/sbwml/packages_lang_golang -b 25.x feeds/packages/lang/golang
+          git clone https://github.com/kenzok8/golang -b 1.25 feeds/packages/lang/golang
           ./scripts/feeds install -a
+          # Ensure OpenClash is actually present in the build system (avoids silent "config set but package missing")
+          ./scripts/feeds search luci-app-openclash || true
+          ./scripts/feeds install -f luci-app-openclash || true
           
       - name: Generate configuration file
-        run: make defconfig
+        run: |
+          make defconfig
+          echo "===== .config check ====="
+          grep -n "CONFIG_PACKAGE_luci-app-openclash" .config || true
 
       - name: Download packages
         run: make download -j16
@@ -83,6 +91,8 @@ jobs:
           du -h --max-depth=1 ./ --exclude=build_dir --exclude=bin
           du -h --max-depth=1 ./build_dir
           du -h --max-depth=1 ./bin
+          echo "===== manifest check (OpenClash) ====="
+          grep -R "luci-app-openclash" -n ./bin/targets/ || true
 
       - name: Prepare artifact
         run: |
