@@ -59,19 +59,9 @@ jobs:
 
       - name: Update feeds
         run: |
-          sed -i '1i src-git kenzo https://github.com/kenzok8/openwrt-packages' feeds.conf.default
-          sed -i '2i src-git small https://github.com/kenzok8/small' feeds.conf.default
-          echo "===== feeds.conf.default (after injection) ====="
-          cat feeds.conf.default
-          ./scripts/feeds update -a && rm -rf feeds/luci/applications/luci-app-mosdns
-          rm -rf feeds/packages/net/{alist,adguardhome,mosdns,xray*,v2ray*,v2ray*,sing*,smartdns}
-          rm -rf feeds/packages/utils/v2dat
-          rm -rf feeds/packages/lang/golang
-          git clone https://github.com/kenzok8/golang -b 1.25 feeds/packages/lang/golang
+          sed -i 's/#src-git helloworld/src-git helloworld/g' ./feeds.conf.default
+          ./scripts/feeds update -a
           ./scripts/feeds install -a
-          # Ensure OpenClash is actually present in the build system (avoids silent "config set but package missing")
-          ./scripts/feeds search luci-app-openclash || true
-          ./scripts/feeds install -f luci-app-openclash || true
           
       - name: Generate configuration file
         run: |
